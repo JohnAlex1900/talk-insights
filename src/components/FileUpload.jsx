@@ -34,7 +34,7 @@ const FileUpload = ({ setData }) => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/upload/",
+        "https://talk-insights-backend.onrender.com/upload/",
         formData
       );
 

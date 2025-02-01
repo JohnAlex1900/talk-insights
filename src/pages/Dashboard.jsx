@@ -33,7 +33,9 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://127.0.0.1:8000/analysis");
+        const response = await axios.get(
+          "https://talk-insights-backend.onrender.com/analysis"
+        );
 
         console.log("Backend response:", response.data); // Debugging log
 
