@@ -45,7 +45,7 @@ const FileUpload = ({ setData }) => {
         setError("Unexpected response. Please try again.");
       }
     } catch (error) {
-      console.error("Upload failed", error);
+      console.error("Upload has failed", error);
       setError("Error uploading file. Please check your connection.");
     }
 
