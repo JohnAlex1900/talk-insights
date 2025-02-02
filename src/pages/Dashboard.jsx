@@ -127,14 +127,16 @@ const Dashboard = () => {
             Categories
           </h3>
           <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {data.categories.map((category, index) => (
-              <div
-                key={index}
-                className="p-6 bg-orange-500 text-white rounded-lg shadow-lg flex items-center justify-center transition-transform transform hover:scale-105"
-              >
-                <h4 className="text-lg font-semibold">{category}</h4>
-              </div>
-            ))}
+            {data.categories && data.categories.length > 0
+              ? data.categories.map((category, index) => (
+                  <div
+                    key={index}
+                    className="p-6 bg-orange-500 text-white rounded-lg shadow-lg flex items-center justify-center transition-transform transform hover:scale-105"
+                  >
+                    <h4 className="text-lg font-semibold">{category}</h4>
+                  </div>
+                ))
+              : "No Categories"}
           </div>
         </div>
       )}
