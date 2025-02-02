@@ -9,8 +9,22 @@ const Dashboard = ({ data }) => {
     sentiment: true,
     categories: true,
   });
+  const [loading, setLoading] = useState(false);
 
   const [chartData, setChartData] = useState(null);
+
+  useEffect(() => {
+    fetch("https://talk-insights-backend.onrender.com/analysis")
+      .then((response) => response.json())
+      .then((result) => {
+        setData(result);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching analysis:", error);
+        setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
     if (data && data.sentiment_analysis) {
@@ -44,6 +58,9 @@ const Dashboard = ({ data }) => {
     link.click();
   };
 
+  if (loading) return <p>Loading...</p>;
+  if (!data || !data.summary) return <p>No analysis available.</p>;
+
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-dark-blue mb-4">
@@ -64,7 +81,7 @@ const Dashboard = ({ data }) => {
             {feature.charAt(0).toUpperCase() + feature.slice(1)}
           </button>
         ))}
-        <mdDownload
+        <MdDownload
           className="text-xl text-orange-500 cursor-pointer"
           onClick={exportData}
           title="Export Data"
