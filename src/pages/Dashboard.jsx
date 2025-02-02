@@ -8,7 +8,9 @@ const Dashboard = () => {
     summary: true,
     sentiment: true,
     categories: true,
-    complaints: true, // Add complaints to selected features
+    complaints: true,
+    leads: true,
+    positiveFeedback: true,
   });
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
@@ -151,6 +153,44 @@ const Dashboard = () => {
                   </div>
                 ))
               : "No complaints"}
+          </p>
+        </div>
+      )}
+
+      {selectedFeatures.leads && (
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-dark-blue">Leads</h3>
+          <p className="text-gray-700">
+            {data.leads && data.leads.length > 0
+              ? data.leads.map((lead, index) => (
+                  <div key={index} className="p-4 bg-blue-100 rounded-lg mb-2">
+                    <h4 className="text-lg font-semibold text-blue-500">
+                      Potential Lead
+                    </h4>
+                    <p>{lead.description}</p>
+                  </div>
+                ))
+              : "No leads"}
+          </p>
+        </div>
+      )}
+
+      {selectedFeatures.positiveFeedback && (
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-dark-blue">
+            Positive Feedback
+          </h3>
+          <p className="text-gray-700">
+            {data.positiveFeedback && data.positiveFeedback.length > 0
+              ? data.positiveFeedback.map((feedback, index) => (
+                  <div key={index} className="p-4 bg-green-100 rounded-lg mb-2">
+                    <h4 className="text-lg font-semibold text-green-500">
+                      Positive Feedback
+                    </h4>
+                    <p>{feedback.description}</p>
+                  </div>
+                ))
+              : "No positive feedback"}
           </p>
         </div>
       )}
