@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import for navigation
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const FileUpload = ({ setData }) => {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate(); // Initialize navigation
+  const navigate = useNavigate();
 
   const validFileTypes = ["audio/mp3", "audio/wav", "audio/mpeg"];
 
@@ -14,7 +14,7 @@ const FileUpload = ({ setData }) => {
     const selectedFile = e.target.files[0];
 
     if (selectedFile && !validFileTypes.includes(selectedFile.type)) {
-      setError("Please upload a valid audio file (mp3, wav, or mpeg).");
+      setError("Invalid file type. Please upload an mp3, wav, or mpeg file.");
       setFile(null);
     } else {
       setError("");
@@ -24,31 +24,28 @@ const FileUpload = ({ setData }) => {
 
   const uploadFile = async () => {
     if (!file) {
-      setError("No file selected. Please choose an audio file.");
+      setError("Please select an audio file before uploading.");
       return;
     }
-
     setLoading(true);
     const formData = new FormData();
     formData.append("file", file);
 
     try {
       const response = await axios.post(
-        "https://talk-insights-backend.onrender.com/upload/",
+        "https://talk-insights-backend.onrender.com/upload",
         formData
       );
 
-      if (response.data && response.status === 200) {
+      if (response.data) {
         setData(response.data);
-        navigate("/dashboard"); // Redirect to dashboard
+        navigate("/dashboard");
       } else {
         setError("Unexpected response. Please try again.");
       }
     } catch (error) {
-      console.error("Upload has failed", error);
       setError("Error uploading file. Please check your connection.");
     }
-
     setLoading(false);
   };
 
@@ -60,13 +57,13 @@ const FileUpload = ({ setData }) => {
         type="file"
         accept="audio/*"
         onChange={handleFileChange}
-        className="block w-full text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none p-2"
+        className="block w-full border rounded-lg cursor-pointer p-2"
       />
 
       <button
         onClick={uploadFile}
         disabled={loading || !file}
-        className="bg-orange-400 hover:bg-orange-600 text-white font-semibold py-2 px-6 rounded-lg mt-4 transition-all disabled:bg-gray-300"
+        className="bg-orange-400 hover:bg-orange-600 text-white py-2 px-6 rounded-lg mt-4 disabled:bg-gray-300"
       >
         {loading ? "Processing..." : "Upload"}
       </button>

@@ -1,132 +1,111 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
+import { FaDownload } from "react-icons/fa";
+import "chart.js/auto";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
+const Dashboard = ({ data }) => {
+  const [selectedFeatures, setSelectedFeatures] = useState({
+    summary: true,
+    sentiment: true,
+    categories: true,
+  });
 
-const Dashboard = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(
-          "https://talk-insights-backend.onrender.com/analysis"
-        );
+    if (data && data.sentiment_analysis) {
+      setChartData({
+        labels: ["Positive", "Neutral", "Negative"],
+        datasets: [
+          {
+            label: "Sentiment Analysis",
+            data: [
+              data.sentiment_analysis.positive,
+              data.sentiment_analysis.neutral,
+              data.sentiment_analysis.negative,
+            ],
+            backgroundColor: ["#4caf50", "#ffeb3b", "#f44336"],
+          },
+        ],
+      });
+    }
+  }, [data]);
 
-        console.log("Backend response:", response.data); // Debugging log
+  const toggleFeature = (feature) => {
+    setSelectedFeatures((prev) => ({ ...prev, [feature]: !prev[feature] }));
+  };
 
-        if (response.data.error) {
-          setError(response.data.error);
-        } else {
-          setData(response.data);
-        }
-      } catch (error) {
-        console.error("Error fetching analysis data:", error);
-        setError("Failed to load data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading)
-    return (
-      <div className="text-center mt-10 text-blue-500">
-        Loading analysis data...
-      </div>
-    );
-  if (error)
-    return <div className="text-center mt-10 text-red-500">{error}</div>;
+  const exportData = () => {
+    const exportContent = JSON.stringify(data, null, 2);
+    const blob = new Blob([exportContent], { type: "application/json" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "call_summary.json";
+    link.click();
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold text-darkblue mb-4">
+    <div className="p-6 bg-white rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-dark-blue mb-4">
         Call Analysis Dashboard
-      </h1>
+      </h2>
 
-      {/* Summary Section */}
-      {data && data.summary && (
-        <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
-          <h2 className="text-lg font-semibold">Summary</h2>
+      <div className="flex space-x-4 mb-4">
+        {Object.keys(selectedFeatures).map((feature) => (
+          <button
+            key={feature}
+            onClick={() => toggleFeature(feature)}
+            className={`px-4 py-2 rounded ${
+              selectedFeatures[feature]
+                ? "bg-orange-500 text-white"
+                : "bg-gray-300 text-gray-700"
+            }`}
+          >
+            {feature.charAt(0).toUpperCase() + feature.slice(1)}
+          </button>
+        ))}
+        <FaDownload
+          className="text-xl text-orange-500 cursor-pointer"
+          onClick={exportData}
+          title="Export Data"
+        />
+      </div>
+
+      {selectedFeatures.summary && (
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-dark-blue">Summary</h3>
           <p className="text-gray-700">{data.summary}</p>
         </div>
       )}
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Pie Chart */}
-        {data && data.categories && data.categories.length > 0 && (
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-2">Categories</h2>
-            <div className="flex flex-wrap gap-2">
-              {data.categories.map((category, index) => (
-                <span
-                  key={index}
-                  className="bg-orange-100 text-orange-600 py-1 px-4 rounded-full text-sm"
-                >
-                  {category}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+      {selectedFeatures.sentiment && chartData && (
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-dark-blue">
+            Sentiment Analysis
+          </h3>
+          <Bar data={chartData} />
+        </div>
+      )}
 
-        {/* Bar Chart */}
-        {data && data.sentiments && (
-          <div className="bg-white p-4 rounded-lg shadow-md">
-            <h2 className="text-lg font-semibold mb-2">Sentiment Analysis</h2>
-            <Bar
-              data={{
-                labels: ["Positive", "Neutral", "Negative"],
-                datasets: [
-                  {
-                    label: "Sentiments",
-                    data: [
-                      data.sentiments.positive || 0,
-                      data.sentiments.neutral || 0,
-                      data.sentiments.negative || 0,
-                    ],
-                    backgroundColor: ["#4CAF50", "#FFC107", "#F44336"],
-                  },
-                ],
-              }}
-            />
+      {selectedFeatures.categories && (
+        <div>
+          <h3 className="text-xl font-semibold text-dark-blue">Categories</h3>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(data.categories || {}).map(
+              ([category, details]) => (
+                <div key={category} className="p-4 bg-gray-100 rounded-lg">
+                  <h4 className="text-lg font-semibold">{category}</h4>
+                  <ul className="list-disc list-inside text-gray-700">
+                    {details.map((item, index) => (
+                      <li key={index}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )
+            )}
           </div>
-        )}
-      </div>
-
-      <button
-        onClick={() => navigate("/")}
-        className="bg-orange-500 text-white py-2 px-6 rounded-lg mt-6 hover:bg-orange-700"
-      >
-        Back to Upload
-      </button>
+        </div>
+      )}
     </div>
   );
 };
