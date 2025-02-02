@@ -3,18 +3,20 @@ import { Bar } from "react-chartjs-2";
 import { MdDownload } from "react-icons/md";
 import "chart.js/auto";
 
-const Dashboard = ({ data }) => {
+const Dashboard = () => {
   const [selectedFeatures, setSelectedFeatures] = useState({
     summary: true,
     sentiment: true,
     categories: true,
+    complaints: true, // Add complaints to selected features
   });
   const [loading, setLoading] = useState(false);
-
+  const [data, setData] = useState(null);
   const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
-    fetch("https://talk-insights-backend.onrender.com/analysis")
+    setLoading(true);
+    fetch("http://localhost:8000/analysis")
       .then((response) => response.json())
       .then((result) => {
         setData(result);
@@ -27,16 +29,16 @@ const Dashboard = ({ data }) => {
   }, []);
 
   useEffect(() => {
-    if (data && data.sentiment_analysis) {
+    if (data && data.sentiments) {
       setChartData({
         labels: ["Positive", "Neutral", "Negative"],
         datasets: [
           {
             label: "Sentiment Analysis",
             data: [
-              data.sentiment_analysis.positive,
-              data.sentiment_analysis.neutral,
-              data.sentiment_analysis.negative,
+              data.sentiments.positive,
+              data.sentiments.neutral,
+              data.sentiments.negative,
             ],
             backgroundColor: ["#4caf50", "#ffeb3b", "#f44336"],
           },
@@ -49,13 +51,29 @@ const Dashboard = ({ data }) => {
     setSelectedFeatures((prev) => ({ ...prev, [feature]: !prev[feature] }));
   };
 
-  const exportData = () => {
-    const exportContent = JSON.stringify(data, null, 2);
-    const blob = new Blob([exportContent], { type: "application/json" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "call_summary.json";
-    link.click();
+  const exportData = async () => {
+    try {
+      // Make a request to the backend to get the CSV file
+      const response = await fetch("http://localhost:8000/export"); // Adjust URL as necessary
+      if (!response.ok) {
+        throw new Error("Failed to export data");
+      }
+
+      // Get the CSV file as a Blob from the response
+      const blob = await response.blob();
+
+      // Create a temporary link element
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+
+      // Set the download filename
+      link.download = "call_summary.csv";
+
+      // Simulate a click on the link to start the download
+      link.click();
+    } catch (error) {
+      console.error("Error exporting data:", error);
+    }
   };
 
   if (loading) return <p>Loading...</p>;
@@ -81,11 +99,6 @@ const Dashboard = ({ data }) => {
             {feature.charAt(0).toUpperCase() + feature.slice(1)}
           </button>
         ))}
-        <MdDownload
-          className="text-xl text-orange-500 cursor-pointer"
-          onClick={exportData}
-          title="Export Data"
-        />
       </div>
 
       {selectedFeatures.summary && (
@@ -106,23 +119,50 @@ const Dashboard = ({ data }) => {
 
       {selectedFeatures.categories && (
         <div>
-          <h3 className="text-xl font-semibold text-dark-blue">Categories</h3>
-          <div className="grid grid-cols-2 gap-4">
-            {Object.entries(data.categories || {}).map(
-              ([category, details]) => (
-                <div key={category} className="p-4 bg-gray-100 rounded-lg">
-                  <h4 className="text-lg font-semibold">{category}</h4>
-                  <ul className="list-disc list-inside text-gray-700">
-                    {details.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              )
-            )}
+          <h3 className="text-xl font-semibold text-dark-blue mb-4">
+            Categories
+          </h3>
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {data.categories.map((category, index) => (
+              <div
+                key={index}
+                className="p-6 bg-orange-500 text-white rounded-lg shadow-lg flex items-center justify-center transition-transform transform hover:scale-105"
+              >
+                <h4 className="text-lg font-semibold">{category}</h4>
+              </div>
+            ))}
           </div>
         </div>
       )}
+
+      {selectedFeatures.complaints && (
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold text-dark-blue">Complaints</h3>
+          <p className="text-gray-700">
+            {data.complaints && data.complaints.length > 0
+              ? data.complaints.map((complaint, index) => (
+                  <div key={index} className="p-4 bg-red-100 rounded-lg mb-2">
+                    <h4 className="text-lg font-semibold text-red-500">
+                      {complaint.severity} complaint
+                    </h4>
+                    <p>{complaint.description}</p>
+                  </div>
+                ))
+              : "No complaints"}
+          </p>
+        </div>
+      )}
+
+      <div className="mt-6">
+        <button
+          onClick={exportData}
+          className="flex items-center justify-center px-6 py-3 bg-orange-500 text-white font-semibold rounded-lg shadow-lg hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition duration-300"
+          title="Export Data"
+        >
+          <MdDownload className="text-2xl mr-2" />
+          Export Data
+        </button>
+      </div>
     </div>
   );
 };

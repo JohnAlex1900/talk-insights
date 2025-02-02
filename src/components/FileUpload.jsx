@@ -33,7 +33,7 @@ const FileUpload = ({ setData }) => {
 
     try {
       const response = await axios.post(
-        "https://talk-insights-backend.onrender.com/upload",
+        "http://localhost:8000/upload",
         formData
       );
 
