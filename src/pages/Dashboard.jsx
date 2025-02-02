@@ -16,7 +16,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     setLoading(true);
-    fetch("http://localhost:8000/analysis")
+    fetch("https://talk-insights-backend.onrender.com/analysis")
       .then((response) => response.json())
       .then((result) => {
         setData(result);
@@ -54,7 +54,9 @@ const Dashboard = () => {
   const exportData = async () => {
     try {
       // Make a request to the backend to get the CSV file
-      const response = await fetch("http://localhost:8000/export"); // Adjust URL as necessary
+      const response = await fetch(
+        "https://talk-insights-backend.onrender.com/export"
+      ); // Adjust URL as necessary
       if (!response.ok) {
         throw new Error("Failed to export data");
       }
