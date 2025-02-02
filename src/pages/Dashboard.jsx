@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Bar } from "react-chartjs-2";
-import { FaDownload } from "react-icons/fa";
+import { MdDownload } from "react-icons/md";
 import "chart.js/auto";
 
 const Dashboard = ({ data }) => {
@@ -64,7 +64,7 @@ const Dashboard = ({ data }) => {
             {feature.charAt(0).toUpperCase() + feature.slice(1)}
           </button>
         ))}
-        <FaDownload
+        <mdDownload
           className="text-xl text-orange-500 cursor-pointer"
           onClick={exportData}
           title="Export Data"
